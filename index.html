@@ -503,16 +503,29 @@ button {
     appRoot.hidden = false;
   }
 
-  if (localStorage.getItem(GATE_STORAGE_KEY) === "yes") {
-    unlock();
+  function rememberUnlock() {
+    try {
+      localStorage.setItem(GATE_STORAGE_KEY, "yes");
+    } catch (err) {
+      // Almacenamiento bloqueado por el navegador (modo privado, webview, etc.):
+      // no pasa nada, simplemente no se recordará la sesión la próxima vez.
+    }
+  }
+
+  try {
+    if (localStorage.getItem(GATE_STORAGE_KEY) === "yes") {
+      unlock();
+    }
+  } catch (err) {
+    // Si el navegador bloquea localStorage, seguimos mostrando el login normalmente.
   }
 
   gateForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    const user = document.getElementById("gateUser").value.trim();
+    const user = document.getElementById("gateUser").value.trim().toLowerCase();
     const pass = document.getElementById("gatePass").value;
     if (user === GATE_USER && pass === GATE_PASS) {
-      localStorage.setItem(GATE_STORAGE_KEY, "yes");
+      rememberUnlock();
       gateError.hidden = true;
       unlock();
     } else {
