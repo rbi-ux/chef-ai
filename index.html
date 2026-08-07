@@ -786,7 +786,11 @@ input[type="file"] {
 // reenvía los datos por correo. FormSubmit ve los datos del formulario
 // antes de reenviarlos — es el mismo trade-off de cualquier formulario
 // de contacto sin backend propio.
-const FORM_ENDPOINT = "https://formsubmit.co/ajax/davidpnautomation@gmail.com";
+// El endpoint /ajax/ de FormSubmit no procesa adjuntos (los ignora en
+// silencio). El endpoint estándar sí soporta archivos, pero normalmente
+// pide un captcha - lo desactivamos con _captcha=false para que un envío
+// automático desde fetch() no se quede esperando esa verificación.
+const FORM_ENDPOINT = "https://formsubmit.co/davidpnautomation@gmail.com";
 const UNIT_OPTIONS = ["g", "kg", "ml", "l"];
 
 const recipeForm = document.getElementById("recipeForm");
@@ -1029,6 +1033,7 @@ recipeForm.addEventListener("submit", async function (e) {
 
   const fd = new FormData();
   fd.append("_subject", "Nueva receta enviada - Aileas Keto x Nutri Habits");
+  fd.append("_captcha", "false");
   fd.append("_template", "table");
   fd.append("Autor", toAsciiSafe(document.getElementById("authorInput").value.trim()));
   fd.append("Titulo", toAsciiSafe(document.getElementById("titleInput").value.trim()));
