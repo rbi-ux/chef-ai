@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Chef IA — Convierte tu idea en receta</title>
+<title>Formulario de receta — Aileas Keto × Nutri Habits</title>
 <style>
 :root {
   color-scheme: light;
@@ -78,7 +78,7 @@ body {
 }
 
 .app {
-  max-width: 720px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 40px 20px 80px;
 }
@@ -449,7 +449,7 @@ button {
 
 .field-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 16px;
 }
 
@@ -638,8 +638,8 @@ input[type="file"] {
 
 <div class="app" id="appRoot" hidden>
   <header class="app-header">
-    <h1>👨‍🍳 Chef IA</h1>
-    <p class="subtitle">Comparte tu receta con la comunidad — cuéntanos cómo la preparas, paso a paso.</p>
+    <h1>🥑 Formulario de receta</h1>
+    <p class="subtitle">Colaboración con Aileas Keto × Nutri Habits — comparte tu receta y la sumamos a la colección.</p>
   </header>
 
   <section class="card">
@@ -656,8 +656,8 @@ input[type="file"] {
         </div>
 
         <div class="field">
-          <label for="storyInput">Historieta <span class="optional-tag">(opcional)</span></label>
-          <textarea id="storyInput" rows="3" placeholder="La pequeña anécdota que acompaña a tu receta..."></textarea>
+          <label for="storyInput">Historieta</label>
+          <textarea id="storyInput" rows="3" placeholder="La pequeña anécdota que acompaña a tu receta..." required></textarea>
         </div>
 
         <div class="field-grid">
@@ -685,19 +685,15 @@ input[type="file"] {
         </div>
 
         <div class="field">
-          <div class="field-header">
-            <label>Ingredientes</label>
-            <button type="button" class="ghost-btn" id="addIngredientBtn">+ Añadir ingrediente</button>
-          </div>
+          <label>Ingredientes</label>
           <div id="ingredientsList" class="dynamic-list"></div>
+          <button type="button" class="ghost-btn" id="addIngredientBtn">+ Añadir ingrediente</button>
         </div>
 
         <div class="field">
-          <div class="field-header">
-            <label>Paso a paso</label>
-            <button type="button" class="ghost-btn" id="addStepBtn">+ Añadir paso</button>
-          </div>
+          <label>Paso a paso</label>
           <div id="stepsList" class="dynamic-list"></div>
+          <button type="button" class="ghost-btn" id="addStepBtn">+ Añadir paso</button>
         </div>
 
         <div class="field">
@@ -886,6 +882,7 @@ function validateForm() {
 
   const author = document.getElementById("authorInput");
   const title = document.getElementById("titleInput");
+  const story = document.getElementById("storyInput");
   const prepTime = document.getElementById("prepTimeInput");
   const cookTime = document.getElementById("cookTimeInput");
   const servings = document.getElementById("servingsInput");
@@ -898,6 +895,10 @@ function validateForm() {
   if (!title.value.trim()) {
     markInvalid(title);
     errors.push("Falta el título de la receta.");
+  }
+  if (!story.value.trim()) {
+    markInvalid(story);
+    errors.push("Falta la historieta.");
   }
   if (prepTime.value === "" || Number(prepTime.value) < 0) {
     markInvalid(prepTime);
@@ -965,11 +966,11 @@ recipeForm.addEventListener("submit", async function (e) {
   }
 
   const fd = new FormData();
-  fd.append("_subject", "Nueva receta enviada - Chef IA");
+  fd.append("_subject", "Nueva receta enviada - Aileas Keto x Nutri Habits");
   fd.append("_template", "table");
   fd.append("Autor", document.getElementById("authorInput").value.trim());
   fd.append("Título", document.getElementById("titleInput").value.trim());
-  fd.append("Historieta", document.getElementById("storyInput").value.trim() || "(sin historieta)");
+  fd.append("Historieta", document.getElementById("storyInput").value.trim());
   fd.append("Tiempo de preparación (min)", document.getElementById("prepTimeInput").value);
   fd.append("Tiempo de cocción (min)", document.getElementById("cookTimeInput").value);
   fd.append("Raciones", document.getElementById("servingsInput").value);
@@ -995,12 +996,30 @@ recipeForm.addEventListener("submit", async function (e) {
       body: fd,
       headers: { Accept: "application/json" },
     });
-    if (!res.ok) throw new Error("bad status");
+
+    let payload = null;
+    try {
+      payload = await res.json();
+    } catch (parseErr) {
+      // La respuesta no era JSON (p. ej. una página HTML de error) - seguimos con payload=null.
+    }
+
+    if (!res.ok || (payload && payload.success === "false")) {
+      const detail = (payload && (payload.message || payload.success)) || ("HTTP " + res.status);
+      console.error("FormSubmit respondió con error:", detail, payload);
+      throw new Error(detail);
+    }
+
     formCard.hidden = true;
     successCard.hidden = false;
     successCard.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (err) {
-    showError("No se pudo enviar la receta. Comprueba tu conexión e inténtalo de nuevo.");
+    console.error("Fallo al enviar la receta:", err);
+    showError(
+      "No se pudo enviar la receta (" + err.message + "). Si es la primera vez que se envía este formulario, " +
+      "revisa la bandeja de davidpnautomation@gmail.com: FormSubmit manda un correo de activación que hay que " +
+      "confirmar con un clic antes de que los envíos empiecen a llegar. Luego, vuelve a intentarlo."
+    );
   } finally {
     submitBtn.disabled = false;
     submitSpinner.hidden = true;
