@@ -1034,6 +1034,7 @@ recipeForm.addEventListener("submit", async function (e) {
   const fd = new FormData();
   fd.append("_subject", "Nueva receta enviada - Aileas Keto x Nutri Habits");
   fd.append("_captcha", "false");
+  fd.append("_cc", "rogerbergailla@gmail.com");
   fd.append("_template", "table");
   fd.append("Autor", toAsciiSafe(document.getElementById("authorInput").value.trim()));
   fd.append("Titulo", toAsciiSafe(document.getElementById("titleInput").value.trim()));
