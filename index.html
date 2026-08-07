@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chef IA — Convierte tu idea en receta</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --card-bg: #ffffff;
+  --ink: #2b241d;
+  --ink-soft: #6b5f4f;
+  --accent: #b5502e;
+  --accent-dark: #8f3d21;
+  --border: #e5dccb;
+  --success-bg: #fbf6ec;
+  --error-bg: #fdecec;
+  --error-border: #f3b8b8;
+  --error-ink: #7a2020;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --bg: #1c1712;
+    --card-bg: #262019;
+    --ink: #f0e9dc;
+    --ink-soft: #b7a992;
+    --accent: #e08a5c;
+    --accent-dark: #c96b3f;
+    --border: #3a3226;
+    --success-bg: #241f17;
+    --error-bg: #2e1c1c;
+    --error-border: #5c2e2e;
+    --error-ink: #f0b4b4;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1c1712;
+  --card-bg: #262019;
+  --ink: #f0e9dc;
+  --ink-soft: #b7a992;
+  --accent: #e08a5c;
+  --accent-dark: #c96b3f;
+  --border: #3a3226;
+  --success-bg: #241f17;
+  --error-bg: #2e1c1c;
+  --error-border: #5c2e2e;
+  --error-ink: #f0b4b4;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --card-bg: #ffffff;
+  --ink: #2b241d;
+  --ink-soft: #6b5f4f;
+  --accent: #b5502e;
+  --accent-dark: #8f3d21;
+  --border: #e5dccb;
+  --success-bg: #fbf6ec;
+  --error-bg: #fdecec;
+  --error-border: #f3b8b8;
+  --error-ink: #7a2020;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Georgia", "Iowan Old Style", serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.app-header h1 {
+  font-size: 2.2rem;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  color: var(--ink-soft);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(43, 36, 29, 0.04);
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+textarea,
+input[type="password"],
+input[type="text"] {
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  resize: vertical;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.api-key-row {
+  display: flex;
+  gap: 8px;
+}
+
+.api-key-row input {
+  flex: 1;
+}
+
+.icon-btn {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 0 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.hint {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  margin: 10px 0 0;
+  line-height: 1.4;
+}
+
+.hint a {
+  color: var(--accent);
+}
+
+.options-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.select-label {
+  flex: 1;
+  min-width: 220px;
+}
+
+select {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+.primary-btn {
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s ease;
+}
+
+.primary-btn:hover {
+  background: var(--accent-dark);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondary-btn {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.result-card {
+  background: var(--success-bg);
+  border-color: var(--border);
+}
+
+.result-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.toolbar-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  background: var(--bg);
+  border-color: var(--accent);
+}
+
+.toolbar-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.edit-hint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+#resultContent[contenteditable="true"] {
+  outline: 2px dashed var(--accent);
+  outline-offset: 8px;
+  border-radius: 8px;
+  cursor: text;
+}
+
+#resultContent[contenteditable="true"]:focus {
+  outline-color: var(--accent-dark);
+}
+
+#resultContent h2 {
+  font-size: 1.5rem;
+  margin: 0 0 4px;
+  color: var(--accent-dark);
+}
+
+#resultContent h3 {
+  font-size: 1.05rem;
+  margin: 22px 0 8px;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+#resultContent p {
+  line-height: 1.6;
+  margin: 6px 0;
+}
+
+#resultContent ul,
+#resultContent ol {
+  line-height: 1.7;
+  padding-left: 24px;
+}
+
+#resultContent li {
+  margin-bottom: 4px;
+}
+
+#resultContent strong {
+  color: var(--ink);
+}
+
+.meta-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 8px 0 4px;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.meta-row span {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.error-box {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-ink);
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .app-header h1 {
+    font-size: 1.8rem;
+  }
+  .card {
+    padding: 18px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <h1>👨‍🍳 Chef IA</h1>
+    <p class="subtitle">Escribe una idea, unos ingredientes o un platillo — y te lo convierto en una receta. 100% local, sin internet ni claves de API.</p>
+  </header>
+
+  <section class="card">
+    <label for="recipeInput">Cuéntame qué quieres cocinar</label>
+    <textarea
+      id="recipeInput"
+      rows="5"
+      placeholder="Ej: tengo pollo, limón, ajo y arroz. Algo rápido para la cena.&#10;Ej: quiero una receta de tacos al pastor tradicionales.&#10;Ej: pastel de chocolate sin gluten para un cumpleaños."
+    ></textarea>
+
+    <div class="options-row">
+      <label class="select-label">
+        Nivel del chef
+        <select id="chefStyle">
+          <option value="casero pero con toques profesionales">Casero con toques pro</option>
+          <option value="alta cocina de restaurante gourmet">Alta cocina / gourmet</option>
+          <option value="tradicional y familiar, sin tecnicismos">Tradicional y sencillo</option>
+        </select>
+      </label>
+      <button id="generateBtn" type="button" class="primary-btn">
+        <span class="btn-text">Generar receta</span>
+        <span class="spinner" hidden></span>
+      </button>
+    </div>
+  </section>
+
+  <section class="card result-card" id="resultCard" hidden>
+    <div class="result-toolbar">
+      <button id="editToggleBtn" type="button" class="toolbar-btn">✏️ Editar</button>
+      <button id="copyBtn" type="button" class="toolbar-btn">📋 Copiar</button>
+      <span id="editHint" class="edit-hint" hidden>Editando — haz clic en cualquier texto para cambiarlo.</span>
+    </div>
+    <div id="resultContent"></div>
+  </section>
+
+  <section class="error-box" id="errorBox" hidden></section>
+</div>
+
+<script>
+// Generador de recetas 100% local: sin red, sin API, sin claves.
+// Toma el texto del usuario, detecta ingredientes/plato con reglas simples
+// y arma una receta con plantillas. No es IA real — es un motor de reglas
+// que combina texto para que la interfaz se sienta completa sin conexión.
+
+const recipeInput = document.getElementById("recipeInput");
+const chefStyle = document.getElementById("chefStyle");
+const generateBtn = document.getElementById("generateBtn");
+const btnText = generateBtn.querySelector(".btn-text");
+const spinner = generateBtn.querySelector(".spinner");
+const resultCard = document.getElementById("resultCard");
+const resultContent = document.getElementById("resultContent");
+const errorBox = document.getElementById("errorBox");
+const editToggleBtn = document.getElementById("editToggleBtn");
+const copyBtn = document.getElementById("copyBtn");
+const editHint = document.getElementById("editHint");
+
+generateBtn.addEventListener("click", generateRecipe);
+recipeInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    generateRecipe();
+  }
+});
+
+editToggleBtn.addEventListener("click", toggleEditMode);
+copyBtn.addEventListener("click", copyResultText);
+
+function resetEditMode() {
+  resultContent.setAttribute("contenteditable", "false");
+  editToggleBtn.textContent = "✏️ Editar";
+  editToggleBtn.classList.remove("active");
+  editHint.hidden = true;
+}
+
+function toggleEditMode() {
+  const isEditing = resultContent.getAttribute("contenteditable") === "true";
+  if (isEditing) {
+    resultContent.setAttribute("contenteditable", "false");
+    editToggleBtn.textContent = "✏️ Editar";
+    editToggleBtn.classList.remove("active");
+    editHint.hidden = true;
+  } else {
+    resultContent.setAttribute("contenteditable", "true");
+    resultContent.focus();
+    editToggleBtn.textContent = "✅ Terminar edición";
+    editToggleBtn.classList.add("active");
+    editHint.hidden = false;
+  }
+}
+
+async function copyResultText() {
+  const text = resultContent.innerText;
+  try {
+    await navigator.clipboard.writeText(text);
+    const original = copyBtn.textContent;
+    copyBtn.textContent = "✓ Copiado";
+    setTimeout(() => (copyBtn.textContent = original), 1500);
+  } catch {
+    showError("No se pudo copiar automáticamente. Selecciona el texto manualmente y usa Ctrl/Cmd+C.");
+  }
+}
+
+// --- Diccionario de ingredientes conocidos -> frase con cantidad ---------
+
+const INGREDIENT_PHRASES = {
+  pollo: "2 pechugas de pollo",
+  carne: "500 g de carne molida",
+  res: "500 g de carne de res",
+  cerdo: "500 g de carne de cerdo",
+  pescado: "2 filetes de pescado blanco",
+  camaron: "300 g de camarones pelados",
+  camarones: "300 g de camarones pelados",
+  arroz: "1 taza de arroz",
+  pasta: "250 g de pasta",
+  espagueti: "250 g de espagueti",
+  papa: "3 papas medianas",
+  papas: "3 papas medianas",
+  limon: "el jugo de 1 limón",
+  ajo: "2 dientes de ajo picados",
+  cebolla: "1 cebolla mediana picada",
+  tomate: "2 tomates maduros",
+  jitomate: "2 jitomates maduros",
+  chile: "1 chile al gusto",
+  queso: "100 g de queso rallado",
+  huevo: "2 huevos",
+  huevos: "2 huevos",
+  leche: "1 taza de leche",
+  mantequilla: "2 cucharadas de mantequilla",
+  aceite: "2 cucharadas de aceite de oliva",
+  harina: "1 taza de harina",
+  azucar: "3/4 taza de azúcar",
+  chocolate: "200 g de chocolate para repostería",
+  crema: "1/2 taza de crema",
+  cilantro: "un puñado de cilantro fresco",
+  perejil: "un puñado de perejil fresco",
+  zanahoria: "2 zanahorias",
+  calabaza: "1 calabaza pequeña",
+  brocoli: "1 taza de brócoli",
+  espinaca: "2 tazas de espinaca",
+  frijol: "1 taza de frijoles cocidos",
+  frijoles: "1 taza de frijoles cocidos",
+  tortilla: "8 tortillas de maíz",
+  tortillas: "8 tortillas de maíz",
+  pan: "4 rebanadas de pan",
+  vino: "1/2 taza de vino blanco",
+  yogurt: "1 taza de yogurt natural",
+  atun: "1 lata de atún",
+  garbanzo: "1 taza de garbanzos cocidos",
+  garbanzos: "1 taza de garbanzos cocidos",
+  lenteja: "1 taza de lentejas",
+  lentejas: "1 taza de lentejas",
+  platano: "2 plátanos",
+  manzana: "2 manzanas",
+  fresa: "1 taza de fresas",
+  fresas: "1 taza de fresas",
+  avena: "1 taza de avena",
+  miel: "2 cucharadas de miel",
+};
+
+const CATEGORY_KEYWORDS = {
+  postre: ["chocolate", "azucar", "pastel", "galleta", "postre", "dulce", "miel", "fresa", "fresas", "manzana"],
+  sopa: ["sopa", "caldo", "consome"],
+  ensalada: ["ensalada", "lechuga"],
+  pasta: ["pasta", "espagueti", "macarron"],
+};
+
+// --- Textos variables -----------------------------------------------------
+
+const MINI_HISTORIAS = [
+  "Hay platillos que no necesitan una ocasión especial — solo el hambre de media tarde y ganas de que huela bien la casa. Este es uno de esos.",
+  "Se cuenta que las mejores recetas nacen de lo que hay en la alacena, no de lo que dice el libro. Así empezó también esta.",
+  "Algunas comidas saben mejor si las haces sin prisa, con la ventana abierta y algo de música de fondo. Te invito a cocinar así este platillo.",
+  "No hace falta un restaurante ni una ocasión especial: solo una tabla de picar, buenos ingredientes y un poco de paciencia.",
+  "Cada quien tiene una receta a la que vuelve cuando quiere sentirse en casa. Que esta se convierta en una de las tuyas.",
+  "A veces la mejor cocina es la que se improvisa con lo que hay a mano — y sale mejor de lo esperado. Vamos a comprobarlo.",
+];
+
+const CHEF_TIPS = [
+  "Prueba y ajusta la sal al final: los sabores se asientan mientras cocinas, así que un ajuste tardío suele ser el correcto.",
+  "Si tienes tiempo, deja reposar el platillo 5 minutos antes de servir: los sabores se integran mejor.",
+  "Para más profundidad de sabor, sofríe bien los aromáticos (ajo y cebolla) antes de añadir el resto — no los quemes, solo dóralos.",
+  "Puedes sustituir cualquier proteína por la que tengas disponible; solo ajusta el tiempo de cocción según el grosor.",
+  "Un toque de acidez al final (limón o vinagre) suele resaltar todos los demás sabores del plato.",
+  "Guarda las sobras en un recipiente hermético hasta 3 días; muchos guisos incluso saben mejor al día siguiente.",
+];
+
+const STYLE_FLOURISH = {
+  "casero pero con toques profesionales": {
+    difficulty: "fácil",
+    closing: "Sencillo de hacer entre semana, pero con detalles que se notan.",
+  },
+  "alta cocina de restaurante gourmet": {
+    difficulty: "media",
+    closing: "Cuida el emplatado: un buen platillo también se come con los ojos.",
+  },
+  "tradicional y familiar, sin tecnicismos": {
+    difficulty: "fácil",
+    closing: "Sin trucos raros — la receta de siempre, bien hecha.",
+  },
+};
+
+// --- Utilidades -------------------------------------------------------
+
+function normalize(str) {
+  return str
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function detectServings(text) {
+  const match = normalize(text).match(/(?:para\s+)?(\d{1,2})\s*(?:personas|porciones|raciones)/);
+  if (match) return Math.max(1, Math.min(20, parseInt(match[1], 10)));
+  return 4;
+}
+
+function detectIngredients(text) {
+  const words = normalize(text).match(/[a-zñ]+/g) || [];
+  const found = [];
+  const seen = new Set();
+  for (const w of words) {
+    if (INGREDIENT_PHRASES[w] && !seen.has(w)) {
+      seen.add(w);
+      found.push(w);
+    }
+  }
+  return found;
+}
+
+function detectCategory(ingredientKeys, rawText) {
+  const norm = normalize(rawText);
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some((k) => ingredientKeys.includes(k) || norm.includes(k))) {
+      return category;
+    }
+  }
+  return "principal";
+}
+
+function buildDishName(rawText, ingredientKeys) {
+  const recetaDeMatch = rawText.match(/receta\s+de\s+(.+)/i);
+  if (recetaDeMatch) {
+    return capitalize(recetaDeMatch[1].replace(/[.!?]+$/, "").trim());
+  }
+
+  const wordCount = rawText.trim().split(/\s+/).length;
+  if (ingredientKeys.length === 0 && wordCount <= 8) {
+    return capitalize(rawText.replace(/[.!?]+$/, "").trim());
+  }
+
+  if (ingredientKeys.length >= 2) {
+    const [a, b] = ingredientKeys;
+    return `${capitalize(a)} con ${b}`;
+  }
+  if (ingredientKeys.length === 1) {
+    return `${capitalize(ingredientKeys[0])} casero`;
+  }
+  return capitalize(rawText.slice(0, 40).trim()) || "Platillo del día";
+}
+
+const STEP_TEMPLATES = {
+  postre: (ings) => [
+    "Precalienta el horno a 180°C y prepara tu molde con un poco de mantequilla o papel encerado.",
+    `Mezcla en un tazón grande ${ings.slice(0, 3).join(", ") || "los ingredientes secos"} hasta integrar bien.`,
+    "Incorpora el resto de los ingredientes poco a poco, mezclando con movimientos envolventes para no perder aire.",
+    "Vierte la mezcla en el molde y hornea entre 25 y 35 minutos, o hasta que al insertar un palillo salga limpio.",
+    "Deja enfriar al menos 10 minutos antes de desmoldar y servir.",
+  ],
+  sopa: (ings) => [
+    "En una olla grande, calienta un poco de aceite y sofríe los aromáticos (ajo y cebolla) hasta que estén translúcidos.",
+    `Agrega ${ings.slice(0, 4).join(", ") || "el resto de los ingredientes"} y cocina 2-3 minutos moviendo ocasionalmente.`,
+    "Cubre con agua o caldo, lleva a hervor y baja el fuego a media-baja.",
+    "Deja cocinar tapado entre 20 y 30 minutos, hasta que todo esté suave.",
+    "Ajusta la sal, prueba, y sirve bien caliente con un toque de hierbas frescas.",
+  ],
+  ensalada: (ings) => [
+    "Lava y seca muy bien todos los vegetales antes de cortarlos.",
+    `Corta ${ings.slice(0, 4).join(", ") || "los ingredientes"} en trozos del tamaño de un bocado.`,
+    "Combina todo en un tazón grande, con cuidado de no aplastar los ingredientes más delicados.",
+    "Prepara un aderezo simple con aceite, un ácido (limón o vinagre), sal y pimienta.",
+    "Agrega el aderezo justo antes de servir para que la ensalada no se aguade.",
+  ],
+  pasta: (ings) => [
+    "Pon a hervir abundante agua con sal para la pasta.",
+    "Cocina la pasta según las instrucciones del paquete hasta que quede al dente.",
+    `Mientras tanto, en una sartén, sofríe ${ings.slice(0, 3).join(", ") || "los demás ingredientes"} a fuego medio.`,
+    "Escurre la pasta reservando un poco del agua de cocción, y mézclala con la salsa.",
+    "Ajusta la consistencia con el agua reservada si hace falta, y sirve de inmediato bien caliente.",
+  ],
+  principal: (ings) => [
+    "Prepara todos los ingredientes: lava, pica y ten todo listo antes de encender el fuego (mise en place).",
+    "En una sartén u olla, calienta un poco de aceite y sofríe los aromáticos hasta que suelten su aroma.",
+    `Incorpora ${ings.slice(0, 4).join(", ") || "el ingrediente principal"} y cocina a fuego medio, moviendo de vez en cuando.`,
+    "Baja el fuego, tapa y deja cocinar hasta que todo esté en su punto, ajustando líquido si hace falta.",
+    "Prueba, ajusta la sazón, y sirve caliente acompañado de tu guarnición favorita.",
+  ],
+};
+
+// --- Generación principal ---------------------------------------------
+
+function generateRecipe() {
+  hideError();
+
+  const rawText = recipeInput.value.trim();
+  if (!rawText) {
+    showError("Escribe primero qué quieres cocinar (ingredientes, un platillo, una idea...).");
+    recipeInput.focus();
+    return;
+  }
+
+  setLoading(true);
+  resultCard.hidden = true;
+
+  // Pequeña pausa artificial para que el botón "Cocinando..." se sienta real.
+  setTimeout(() => {
+    try {
+      const ingredientKeys = detectIngredients(rawText);
+      const category = detectCategory(ingredientKeys, rawText);
+      const dishName = buildDishName(rawText, ingredientKeys);
+      const servings = detectServings(rawText);
+      const styleInfo = STYLE_FLOURISH[chefStyle.value] || STYLE_FLOURISH["casero pero con toques profesionales"];
+
+      const ingredientPhrases = ingredientKeys.map((k) => INGREDIENT_PHRASES[k]);
+      if (ingredientPhrases.length === 0) {
+        ingredientPhrases.push(
+          "los ingredientes principales que tengas a mano",
+          "sal y pimienta al gusto",
+          "un chorrito de aceite de oliva"
+        );
+      } else {
+        ingredientPhrases.push("sal y pimienta al gusto");
+      }
+
+      const prepTime = Math.min(30, 10 + ingredientKeys.length * 2);
+      const cookTimeByCategory = { postre: 30, sopa: 30, ensalada: 5, pasta: 18, principal: 22 };
+      const cookTime = cookTimeByCategory[category] ?? 20;
+
+      const steps = STEP_TEMPLATES[category](
+        ingredientKeys.length ? ingredientKeys.map(capitalize) : []
+      );
+
+      const markdown = buildMarkdown({
+        dishName,
+        historia: pickRandom(MINI_HISTORIAS),
+        servings,
+        prepTime,
+        cookTime,
+        difficulty: styleInfo.difficulty,
+        ingredients: ingredientPhrases,
+        steps,
+        tip: `${pickRandom(CHEF_TIPS)} ${styleInfo.closing}`,
+      });
+
+      resultContent.innerHTML = markdownToHtml(markdown);
+      resetEditMode();
+      resultCard.hidden = false;
+      resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (err) {
+      showError("No pude armar la receta. Intenta describir tu idea de otra forma.");
+    } finally {
+      setLoading(false);
+    }
+  }, 500);
+}
+
+function buildMarkdown({ dishName, historia, servings, prepTime, cookTime, difficulty, ingredients, steps, tip }) {
+  const ingredientLines = ingredients.map((i) => `- ${i}`).join("\n");
+  const stepLines = steps.map((s, i) => `${i + 1}. ${s}`).join("\n");
+
+  return `## ${dishName}
+
+### Antes de empezar
+${historia}
+
+**Porciones:** ${servings} · **Tiempo de preparación:** ${prepTime} min · **Tiempo de cocción:** ${cookTime} min · **Dificultad:** ${difficulty}
+
+### Ingredientes
+${ingredientLines}
+
+### Preparación
+${stepLines}
+
+### Tip del chef
+${tip}`;
+}
+
+// --- UI helpers -----------------------------------------------------------
+
+function setLoading(isLoading) {
+  generateBtn.disabled = isLoading;
+  spinner.hidden = !isLoading;
+  btnText.textContent = isLoading ? "Cocinando..." : "Generar receta";
+}
+
+function showError(message) {
+  errorBox.textContent = message;
+  errorBox.hidden = false;
+}
+
+function hideError() {
+  errorBox.hidden = true;
+  errorBox.textContent = "";
+}
+
+// --- Mini Markdown -> HTML renderer ---------------------------------------
+// Soporta: ##/### encabezados, **negrita**, listas - y 1., párrafos
+// separados por línea en blanco, y la fila de metadatos con "·".
+
+function markdownToHtml(markdown) {
+  const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const inline = (s) => escapeHtml(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+  const html = [];
+  let listType = null;
+
+  const closeList = () => {
+    if (listType) {
+      html.push(`</${listType}>`);
+      listType = null;
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      closeList();
+      continue;
+    }
+
+    const h3 = line.match(/^###\s+(.*)/);
+    const h2 = line.match(/^##\s+(.*)/);
+    const ol = line.match(/^\d+[.)]\s+(.*)/);
+    const ul = line.match(/^[-*]\s+(.*)/);
+
+    if (h2) {
+      closeList();
+      html.push(`<h2>${inline(h2[1])}</h2>`);
+    } else if (h3) {
+      closeList();
+      html.push(`<h3>${inline(h3[1])}</h3>`);
+    } else if (ol) {
+      if (listType !== "ol") {
+        closeList();
+        html.push("<ol>");
+        listType = "ol";
+      }
+      html.push(`<li>${inline(ol[1])}</li>`);
+    } else if (ul) {
+      if (listType !== "ul") {
+        closeList();
+        html.push("<ul>");
+        listType = "ul";
+      }
+      html.push(`<li>${inline(ul[1])}</li>`);
+    } else if (/^\*\*Porciones/.test(line) || /·/.test(line)) {
+      closeList();
+      html.push(`<div class="meta-row"><span>${inline(line).replace(/\s*·\s*/g, "</span><span>")}</span></div>`);
+    } else {
+      closeList();
+      html.push(`<p>${inline(line)}</p>`);
+    }
+  }
+  closeList();
+
+  return html.join("\n");
+}
+</script>
+</body>
+</html>
