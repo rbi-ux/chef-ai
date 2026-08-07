@@ -604,6 +604,15 @@ input[type="file"] {
   .dynamic-row {
     flex-wrap: wrap;
   }
+  .ingredient-row .ing-name {
+    flex: 1 1 100%;
+  }
+  .ingredient-row .ing-qty {
+    flex: 1 1 auto;
+  }
+  .ingredient-row .ing-unit {
+    flex: 0 0 64px;
+  }
 }
 
 .result-card h2 {
@@ -954,6 +963,48 @@ function validateForm() {
   return { valid: errors.length === 0, errors: errors, ingredients: ingredients, steps: steps };
 }
 
+// Reescala y comprime la imagen en el propio navegador antes de enviarla.
+// Evita fallos de envío con fotos pesadas (muy comunes desde el móvil) y
+// hace que la subida sea rápida incluso en redes móviles lentas.
+function resizeImageFile(file, maxDimension, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let width = img.naturalWidth;
+      let height = img.naturalHeight;
+      if (width > maxDimension || height > maxDimension) {
+        if (width >= height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("No se pudo procesar la imagen"));
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("No se pudo leer la imagen"));
+    };
+    img.src = url;
+  });
+}
+
 recipeForm.addEventListener("submit", async function (e) {
   e.preventDefault();
   hideError();
@@ -995,13 +1046,24 @@ recipeForm.addEventListener("submit", async function (e) {
     toAsciiSafe(result.steps.map((s, i) => i + 1 + ". " + s).join("\n"))
   );
   const imageFile = document.getElementById("imageInput").files[0];
-  if (imageFile) fd.append("Imagen", imageFile);
 
   submitBtn.disabled = true;
   submitSpinner.hidden = false;
   submitBtnText.textContent = "Enviando...";
 
   try {
+    if (imageFile) {
+      submitBtnText.textContent = "Procesando imagen...";
+      try {
+        const resizedBlob = await resizeImageFile(imageFile, 1600, 0.82);
+        fd.append("Imagen", resizedBlob, "receta.jpg");
+      } catch (imgErr) {
+        console.error("No se pudo comprimir la imagen, se envía sin comprimir:", imgErr);
+        fd.append("Imagen", imageFile);
+      }
+      submitBtnText.textContent = "Enviando...";
+    }
+
     const res = await fetch(FORM_ENDPOINT, {
       method: "POST",
       body: fd,
