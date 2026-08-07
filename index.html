@@ -423,6 +423,199 @@ button {
   margin: 10px 0 0;
   min-height: 1.1em;
 }
+
+/* --- Formulario de envío de recetas --- */
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  margin-bottom: 0;
+}
+
+.optional-tag {
+  font-weight: normal;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+input[type="number"] {
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+input[type="file"] {
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.field-header label {
+  margin-bottom: 0;
+}
+
+.ghost-btn {
+  background: transparent;
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.ghost-btn:hover {
+  background: var(--success-bg);
+}
+
+.dynamic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dynamic-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.dynamic-row input,
+.dynamic-row select {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 0.92rem;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--ink);
+}
+
+.ingredient-row .ing-name {
+  flex: 2;
+}
+
+.ingredient-row .ing-qty {
+  flex: 1;
+  min-width: 64px;
+}
+
+.ingredient-row .ing-unit {
+  flex: 0 0 70px;
+}
+
+.step-row {
+  align-items: flex-start;
+}
+
+.step-num {
+  flex: 0 0 22px;
+  height: 22px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-row .step-text {
+  flex: 1;
+}
+
+.step-actions {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.row-move-btn,
+.row-remove-btn {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--ink-soft);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 28px;
+}
+
+.row-move-btn:hover,
+.row-remove-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.row-move-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.invalid {
+  outline: 2px solid var(--error-border);
+  outline-offset: 1px;
+}
+
+@media (max-width: 480px) {
+  .dynamic-row {
+    flex-wrap: wrap;
+  }
+}
+
+.result-card h2 {
+  font-size: 1.4rem;
+  color: var(--accent-dark);
+  margin: 0 0 8px;
+}
+
+.result-card > p {
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+}
 </style>
 </head>
 <body>
@@ -446,40 +639,84 @@ button {
 <div class="app" id="appRoot" hidden>
   <header class="app-header">
     <h1>👨‍🍳 Chef IA</h1>
-    <p class="subtitle">Escribe una idea, unos ingredientes o un platillo — y te lo convierto en una receta. 100% local, sin internet ni claves de API.</p>
+    <p class="subtitle">Comparte tu receta con la comunidad — cuéntanos cómo la preparas, paso a paso.</p>
   </header>
 
   <section class="card">
-    <label for="recipeInput">Cuéntame qué quieres cocinar</label>
-    <textarea
-      id="recipeInput"
-      rows="5"
-      placeholder="Ej: tengo pollo, limón, ajo y arroz. Algo rápido para la cena.&#10;Ej: quiero una receta de tacos al pastor tradicionales.&#10;Ej: pastel de chocolate sin gluten para un cumpleaños."
-    ></textarea>
+    <form id="recipeForm" novalidate>
+      <div class="form-fields">
+        <div class="field">
+          <label for="authorInput">Autor</label>
+          <input type="text" id="authorInput" required />
+        </div>
 
-    <div class="options-row">
-      <label class="select-label">
-        Nivel del chef
-        <select id="chefStyle">
-          <option value="casero pero con toques profesionales">Casero con toques pro</option>
-          <option value="alta cocina de restaurante gourmet">Alta cocina / gourmet</option>
-          <option value="tradicional y familiar, sin tecnicismos">Tradicional y sencillo</option>
-        </select>
-      </label>
-      <button id="generateBtn" type="button" class="primary-btn">
-        <span class="btn-text">Generar receta</span>
+        <div class="field">
+          <label for="titleInput">Título de la receta</label>
+          <input type="text" id="titleInput" required />
+        </div>
+
+        <div class="field">
+          <label for="storyInput">Historieta <span class="optional-tag">(opcional)</span></label>
+          <textarea id="storyInput" rows="3" placeholder="La pequeña anécdota que acompaña a tu receta..."></textarea>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="prepTimeInput">Preparación (min)</label>
+            <input type="number" id="prepTimeInput" min="0" required />
+          </div>
+          <div class="field">
+            <label for="cookTimeInput">Cocción (min)</label>
+            <input type="number" id="cookTimeInput" min="0" required />
+          </div>
+          <div class="field">
+            <label for="servingsInput">Raciones</label>
+            <input type="number" id="servingsInput" min="1" required />
+          </div>
+          <div class="field">
+            <label for="difficultySelect">Dificultad</label>
+            <select id="difficultySelect" required>
+              <option value="" disabled selected>Elige una opción</option>
+              <option value="Fácil">Fácil</option>
+              <option value="Medio">Medio</option>
+              <option value="Difícil">Difícil</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <label>Ingredientes</label>
+            <button type="button" class="ghost-btn" id="addIngredientBtn">+ Añadir ingrediente</button>
+          </div>
+          <div id="ingredientsList" class="dynamic-list"></div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <label>Paso a paso</label>
+            <button type="button" class="ghost-btn" id="addStepBtn">+ Añadir paso</button>
+          </div>
+          <div id="stepsList" class="dynamic-list"></div>
+        </div>
+
+        <div class="field">
+          <label for="imageInput">Imagen de la receta <span class="optional-tag">(opcional)</span></label>
+          <input type="file" id="imageInput" accept="image/*" />
+        </div>
+      </div>
+
+      <button id="submitBtn" type="submit" class="primary-btn" style="margin-top: 22px">
+        <span class="btn-text">Enviar receta</span>
         <span class="spinner" hidden></span>
       </button>
-    </div>
+    </form>
   </section>
 
-  <section class="card result-card" id="resultCard" hidden>
-    <div class="result-toolbar">
-      <button id="editToggleBtn" type="button" class="toolbar-btn">✏️ Editar</button>
-      <button id="copyBtn" type="button" class="toolbar-btn">📋 Copiar</button>
-      <span id="editHint" class="edit-hint" hidden>Editando — haz clic en cualquier texto para cambiarlo.</span>
-    </div>
-    <div id="resultContent"></div>
+  <section class="card result-card" id="successCard" hidden>
+    <h2 style="margin-top: 0">¡Receta enviada! 🎉</h2>
+    <p>Gracias por compartir tu receta. La hemos recibido correctamente.</p>
+    <button type="button" class="toolbar-btn" id="sendAnotherBtn">Enviar otra receta</button>
   </section>
 
   <section class="error-box" id="errorBox" hidden></section>
@@ -538,371 +775,96 @@ button {
   });
 })();
 
-// Generador de recetas 100% local: sin red, sin API, sin claves.
-// Toma el texto del usuario, detecta ingredientes/plato con reglas simples
-// y arma una receta con plantillas. No es IA real — es un motor de reglas
-// que combina texto para que la interfaz se sienta completa sin conexión.
 
-const recipeInput = document.getElementById("recipeInput");
-const chefStyle = document.getElementById("chefStyle");
-const generateBtn = document.getElementById("generateBtn");
-const btnText = generateBtn.querySelector(".btn-text");
-const spinner = generateBtn.querySelector(".spinner");
-const resultCard = document.getElementById("resultCard");
-const resultContent = document.getElementById("resultContent");
+// --- Formulario de envío de recetas -----------------------------------
+// Sitio estático (GitHub Pages): el envío se hace vía FormSubmit.co, que
+// reenvía los datos por correo. FormSubmit ve los datos del formulario
+// antes de reenviarlos — es el mismo trade-off de cualquier formulario
+// de contacto sin backend propio.
+const FORM_ENDPOINT = "https://formsubmit.co/ajax/davidpnautomation@gmail.com";
+const UNIT_OPTIONS = ["g", "kg", "ml", "l"];
+
+const recipeForm = document.getElementById("recipeForm");
+const formCard = recipeForm.closest(".card");
+const successCard = document.getElementById("successCard");
 const errorBox = document.getElementById("errorBox");
-const editToggleBtn = document.getElementById("editToggleBtn");
-const copyBtn = document.getElementById("copyBtn");
-const editHint = document.getElementById("editHint");
+const submitBtn = document.getElementById("submitBtn");
+const submitBtnText = submitBtn.querySelector(".btn-text");
+const submitSpinner = submitBtn.querySelector(".spinner");
 
-generateBtn.addEventListener("click", generateRecipe);
-recipeInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-    generateRecipe();
-  }
-});
+const ingredientsList = document.getElementById("ingredientsList");
+const stepsList = document.getElementById("stepsList");
 
-editToggleBtn.addEventListener("click", toggleEditMode);
-copyBtn.addEventListener("click", copyResultText);
+document.getElementById("addIngredientBtn").addEventListener("click", () => addIngredientRow());
+document.getElementById("addStepBtn").addEventListener("click", () => addStepRow());
 
-function resetEditMode() {
-  resultContent.setAttribute("contenteditable", "false");
-  editToggleBtn.textContent = "✏️ Editar";
-  editToggleBtn.classList.remove("active");
-  editHint.hidden = true;
+function addIngredientRow() {
+  const row = document.createElement("div");
+  row.className = "dynamic-row ingredient-row";
+  row.innerHTML =
+    '<input type="text" class="ing-name" placeholder="Nombre (ej. harina)" />' +
+    '<input type="number" class="ing-qty" placeholder="Cantidad" min="0" step="any" />' +
+    '<select class="ing-unit">' +
+    '<option value="g">g</option>' +
+    '<option value="kg">kg</option>' +
+    '<option value="ml">ml</option>' +
+    '<option value="l">l</option>' +
+    "</select>" +
+    '<button type="button" class="row-remove-btn" aria-label="Eliminar ingrediente">✕</button>';
+  row.querySelector(".row-remove-btn").addEventListener("click", () => {
+    if (ingredientsList.children.length > 1) row.remove();
+  });
+  ingredientsList.appendChild(row);
 }
 
-function toggleEditMode() {
-  const isEditing = resultContent.getAttribute("contenteditable") === "true";
-  if (isEditing) {
-    resultContent.setAttribute("contenteditable", "false");
-    editToggleBtn.textContent = "✏️ Editar";
-    editToggleBtn.classList.remove("active");
-    editHint.hidden = true;
-  } else {
-    resultContent.setAttribute("contenteditable", "true");
-    resultContent.focus();
-    editToggleBtn.textContent = "✅ Terminar edición";
-    editToggleBtn.classList.add("active");
-    editHint.hidden = false;
-  }
-}
-
-async function copyResultText() {
-  const text = resultContent.innerText;
-  try {
-    await navigator.clipboard.writeText(text);
-    const original = copyBtn.textContent;
-    copyBtn.textContent = "✓ Copiado";
-    setTimeout(() => (copyBtn.textContent = original), 1500);
-  } catch {
-    showError("No se pudo copiar automáticamente. Selecciona el texto manualmente y usa Ctrl/Cmd+C.");
-  }
-}
-
-// --- Diccionario de ingredientes conocidos -> frase con cantidad ---------
-
-const INGREDIENT_PHRASES = {
-  pollo: "2 pechugas de pollo",
-  carne: "500 g de carne molida",
-  res: "500 g de carne de res",
-  cerdo: "500 g de carne de cerdo",
-  pescado: "2 filetes de pescado blanco",
-  camaron: "300 g de camarones pelados",
-  camarones: "300 g de camarones pelados",
-  arroz: "1 taza de arroz",
-  pasta: "250 g de pasta",
-  espagueti: "250 g de espagueti",
-  papa: "3 papas medianas",
-  papas: "3 papas medianas",
-  limon: "el jugo de 1 limón",
-  ajo: "2 dientes de ajo picados",
-  cebolla: "1 cebolla mediana picada",
-  tomate: "2 tomates maduros",
-  jitomate: "2 jitomates maduros",
-  chile: "1 chile al gusto",
-  queso: "100 g de queso rallado",
-  huevo: "2 huevos",
-  huevos: "2 huevos",
-  leche: "1 taza de leche",
-  mantequilla: "2 cucharadas de mantequilla",
-  aceite: "2 cucharadas de aceite de oliva",
-  harina: "1 taza de harina",
-  azucar: "3/4 taza de azúcar",
-  chocolate: "200 g de chocolate para repostería",
-  crema: "1/2 taza de crema",
-  cilantro: "un puñado de cilantro fresco",
-  perejil: "un puñado de perejil fresco",
-  zanahoria: "2 zanahorias",
-  calabaza: "1 calabaza pequeña",
-  brocoli: "1 taza de brócoli",
-  espinaca: "2 tazas de espinaca",
-  frijol: "1 taza de frijoles cocidos",
-  frijoles: "1 taza de frijoles cocidos",
-  tortilla: "8 tortillas de maíz",
-  tortillas: "8 tortillas de maíz",
-  pan: "4 rebanadas de pan",
-  vino: "1/2 taza de vino blanco",
-  yogurt: "1 taza de yogurt natural",
-  atun: "1 lata de atún",
-  garbanzo: "1 taza de garbanzos cocidos",
-  garbanzos: "1 taza de garbanzos cocidos",
-  lenteja: "1 taza de lentejas",
-  lentejas: "1 taza de lentejas",
-  platano: "2 plátanos",
-  manzana: "2 manzanas",
-  fresa: "1 taza de fresas",
-  fresas: "1 taza de fresas",
-  avena: "1 taza de avena",
-  miel: "2 cucharadas de miel",
-};
-
-const CATEGORY_KEYWORDS = {
-  postre: ["chocolate", "azucar", "pastel", "galleta", "postre", "dulce", "miel", "fresa", "fresas", "manzana"],
-  sopa: ["sopa", "caldo", "consome"],
-  ensalada: ["ensalada", "lechuga"],
-  pasta: ["pasta", "espagueti", "macarron"],
-};
-
-// --- Textos variables -----------------------------------------------------
-
-const MINI_HISTORIAS = [
-  "Hay platillos que no necesitan una ocasión especial — solo el hambre de media tarde y ganas de que huela bien la casa. Este es uno de esos.",
-  "Se cuenta que las mejores recetas nacen de lo que hay en la alacena, no de lo que dice el libro. Así empezó también esta.",
-  "Algunas comidas saben mejor si las haces sin prisa, con la ventana abierta y algo de música de fondo. Te invito a cocinar así este platillo.",
-  "No hace falta un restaurante ni una ocasión especial: solo una tabla de picar, buenos ingredientes y un poco de paciencia.",
-  "Cada quien tiene una receta a la que vuelve cuando quiere sentirse en casa. Que esta se convierta en una de las tuyas.",
-  "A veces la mejor cocina es la que se improvisa con lo que hay a mano — y sale mejor de lo esperado. Vamos a comprobarlo.",
-];
-
-const CHEF_TIPS = [
-  "Prueba y ajusta la sal al final: los sabores se asientan mientras cocinas, así que un ajuste tardío suele ser el correcto.",
-  "Si tienes tiempo, deja reposar el platillo 5 minutos antes de servir: los sabores se integran mejor.",
-  "Para más profundidad de sabor, sofríe bien los aromáticos (ajo y cebolla) antes de añadir el resto — no los quemes, solo dóralos.",
-  "Puedes sustituir cualquier proteína por la que tengas disponible; solo ajusta el tiempo de cocción según el grosor.",
-  "Un toque de acidez al final (limón o vinagre) suele resaltar todos los demás sabores del plato.",
-  "Guarda las sobras en un recipiente hermético hasta 3 días; muchos guisos incluso saben mejor al día siguiente.",
-];
-
-const STYLE_FLOURISH = {
-  "casero pero con toques profesionales": {
-    difficulty: "fácil",
-    closing: "Sencillo de hacer entre semana, pero con detalles que se notan.",
-  },
-  "alta cocina de restaurante gourmet": {
-    difficulty: "media",
-    closing: "Cuida el emplatado: un buen platillo también se come con los ojos.",
-  },
-  "tradicional y familiar, sin tecnicismos": {
-    difficulty: "fácil",
-    closing: "Sin trucos raros — la receta de siempre, bien hecha.",
-  },
-};
-
-// --- Utilidades -------------------------------------------------------
-
-function normalize(str) {
-  return str
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
-}
-
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function pickRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function detectServings(text) {
-  const match = normalize(text).match(/(?:para\s+)?(\d{1,2})\s*(?:personas|porciones|raciones)/);
-  if (match) return Math.max(1, Math.min(20, parseInt(match[1], 10)));
-  return 4;
-}
-
-function detectIngredients(text) {
-  const words = normalize(text).match(/[a-zñ]+/g) || [];
-  const found = [];
-  const seen = new Set();
-  for (const w of words) {
-    if (INGREDIENT_PHRASES[w] && !seen.has(w)) {
-      seen.add(w);
-      found.push(w);
+function addStepRow() {
+  const row = document.createElement("div");
+  row.className = "dynamic-row step-row";
+  row.innerHTML =
+    '<span class="step-num"></span>' +
+    '<input type="text" class="step-text" placeholder="Describe este paso..." />' +
+    '<div class="step-actions">' +
+    '<button type="button" class="row-move-btn" data-dir="up" aria-label="Subir paso">↑</button>' +
+    '<button type="button" class="row-move-btn" data-dir="down" aria-label="Bajar paso">↓</button>' +
+    '<button type="button" class="row-remove-btn" aria-label="Eliminar paso">✕</button>' +
+    "</div>";
+  row.querySelector('[data-dir="up"]').addEventListener("click", () => {
+    const prev = row.previousElementSibling;
+    if (prev) stepsList.insertBefore(row, prev);
+    renumberSteps();
+  });
+  row.querySelector('[data-dir="down"]').addEventListener("click", () => {
+    const next = row.nextElementSibling;
+    if (next) stepsList.insertBefore(next, row);
+    renumberSteps();
+  });
+  row.querySelector(".row-remove-btn").addEventListener("click", () => {
+    if (stepsList.children.length > 1) {
+      row.remove();
+      renumberSteps();
     }
-  }
-  return found;
+  });
+  stepsList.appendChild(row);
+  renumberSteps();
 }
 
-function detectCategory(ingredientKeys, rawText) {
-  const norm = normalize(rawText);
-  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (keywords.some((k) => ingredientKeys.includes(k) || norm.includes(k))) {
-      return category;
-    }
-  }
-  return "principal";
+function renumberSteps() {
+  const rows = [...stepsList.children];
+  rows.forEach((row, i) => {
+    row.querySelector(".step-num").textContent = i + 1;
+    row.querySelector('[data-dir="up"]').disabled = i === 0;
+    row.querySelector('[data-dir="down"]').disabled = i === rows.length - 1;
+  });
 }
 
-function buildDishName(rawText, ingredientKeys) {
-  const recetaDeMatch = rawText.match(/receta\s+de\s+(.+)/i);
-  if (recetaDeMatch) {
-    return capitalize(recetaDeMatch[1].replace(/[.!?]+$/, "").trim());
-  }
-
-  const wordCount = rawText.trim().split(/\s+/).length;
-  if (ingredientKeys.length === 0 && wordCount <= 8) {
-    return capitalize(rawText.replace(/[.!?]+$/, "").trim());
-  }
-
-  if (ingredientKeys.length >= 2) {
-    const [a, b] = ingredientKeys;
-    return `${capitalize(a)} con ${b}`;
-  }
-  if (ingredientKeys.length === 1) {
-    return `${capitalize(ingredientKeys[0])} casero`;
-  }
-  return capitalize(rawText.slice(0, 40).trim()) || "Platillo del día";
-}
-
-const STEP_TEMPLATES = {
-  postre: (ings) => [
-    "Precalienta el horno a 180°C y prepara tu molde con un poco de mantequilla o papel encerado.",
-    `Mezcla en un tazón grande ${ings.slice(0, 3).join(", ") || "los ingredientes secos"} hasta integrar bien.`,
-    "Incorpora el resto de los ingredientes poco a poco, mezclando con movimientos envolventes para no perder aire.",
-    "Vierte la mezcla en el molde y hornea entre 25 y 35 minutos, o hasta que al insertar un palillo salga limpio.",
-    "Deja enfriar al menos 10 minutos antes de desmoldar y servir.",
-  ],
-  sopa: (ings) => [
-    "En una olla grande, calienta un poco de aceite y sofríe los aromáticos (ajo y cebolla) hasta que estén translúcidos.",
-    `Agrega ${ings.slice(0, 4).join(", ") || "el resto de los ingredientes"} y cocina 2-3 minutos moviendo ocasionalmente.`,
-    "Cubre con agua o caldo, lleva a hervor y baja el fuego a media-baja.",
-    "Deja cocinar tapado entre 20 y 30 minutos, hasta que todo esté suave.",
-    "Ajusta la sal, prueba, y sirve bien caliente con un toque de hierbas frescas.",
-  ],
-  ensalada: (ings) => [
-    "Lava y seca muy bien todos los vegetales antes de cortarlos.",
-    `Corta ${ings.slice(0, 4).join(", ") || "los ingredientes"} en trozos del tamaño de un bocado.`,
-    "Combina todo en un tazón grande, con cuidado de no aplastar los ingredientes más delicados.",
-    "Prepara un aderezo simple con aceite, un ácido (limón o vinagre), sal y pimienta.",
-    "Agrega el aderezo justo antes de servir para que la ensalada no se aguade.",
-  ],
-  pasta: (ings) => [
-    "Pon a hervir abundante agua con sal para la pasta.",
-    "Cocina la pasta según las instrucciones del paquete hasta que quede al dente.",
-    `Mientras tanto, en una sartén, sofríe ${ings.slice(0, 3).join(", ") || "los demás ingredientes"} a fuego medio.`,
-    "Escurre la pasta reservando un poco del agua de cocción, y mézclala con la salsa.",
-    "Ajusta la consistencia con el agua reservada si hace falta, y sirve de inmediato bien caliente.",
-  ],
-  principal: (ings) => [
-    "Prepara todos los ingredientes: lava, pica y ten todo listo antes de encender el fuego (mise en place).",
-    "En una sartén u olla, calienta un poco de aceite y sofríe los aromáticos hasta que suelten su aroma.",
-    `Incorpora ${ings.slice(0, 4).join(", ") || "el ingrediente principal"} y cocina a fuego medio, moviendo de vez en cuando.`,
-    "Baja el fuego, tapa y deja cocinar hasta que todo esté en su punto, ajustando líquido si hace falta.",
-    "Prueba, ajusta la sazón, y sirve caliente acompañado de tu guarnición favorita.",
-  ],
-};
-
-// --- Generación principal ---------------------------------------------
-
-function generateRecipe() {
-  hideError();
-
-  const rawText = recipeInput.value.trim();
-  if (!rawText) {
-    showError("Escribe primero qué quieres cocinar (ingredientes, un platillo, una idea...).");
-    recipeInput.focus();
-    return;
-  }
-
-  setLoading(true);
-  resultCard.hidden = true;
-
-  // Pequeña pausa artificial para que el botón "Cocinando..." se sienta real.
-  setTimeout(() => {
-    try {
-      const ingredientKeys = detectIngredients(rawText);
-      const category = detectCategory(ingredientKeys, rawText);
-      const dishName = buildDishName(rawText, ingredientKeys);
-      const servings = detectServings(rawText);
-      const styleInfo = STYLE_FLOURISH[chefStyle.value] || STYLE_FLOURISH["casero pero con toques profesionales"];
-
-      const ingredientPhrases = ingredientKeys.map((k) => INGREDIENT_PHRASES[k]);
-      if (ingredientPhrases.length === 0) {
-        ingredientPhrases.push(
-          "los ingredientes principales que tengas a mano",
-          "sal y pimienta al gusto",
-          "un chorrito de aceite de oliva"
-        );
-      } else {
-        ingredientPhrases.push("sal y pimienta al gusto");
-      }
-
-      const prepTime = Math.min(30, 10 + ingredientKeys.length * 2);
-      const cookTimeByCategory = { postre: 30, sopa: 30, ensalada: 5, pasta: 18, principal: 22 };
-      const cookTime = cookTimeByCategory[category] ?? 20;
-
-      const steps = STEP_TEMPLATES[category](
-        ingredientKeys.length ? ingredientKeys.map(capitalize) : []
-      );
-
-      const markdown = buildMarkdown({
-        dishName,
-        historia: pickRandom(MINI_HISTORIAS),
-        servings,
-        prepTime,
-        cookTime,
-        difficulty: styleInfo.difficulty,
-        ingredients: ingredientPhrases,
-        steps,
-        tip: `${pickRandom(CHEF_TIPS)} ${styleInfo.closing}`,
-      });
-
-      resultContent.innerHTML = markdownToHtml(markdown);
-      resetEditMode();
-      resultCard.hidden = false;
-      resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (err) {
-      showError("No pude armar la receta. Intenta describir tu idea de otra forma.");
-    } finally {
-      setLoading(false);
-    }
-  }, 500);
-}
-
-function buildMarkdown({ dishName, historia, servings, prepTime, cookTime, difficulty, ingredients, steps, tip }) {
-  const ingredientLines = ingredients.map((i) => `- ${i}`).join("\n");
-  const stepLines = steps.map((s, i) => `${i + 1}. ${s}`).join("\n");
-
-  return `## ${dishName}
-
-### Antes de empezar
-${historia}
-
-**Porciones:** ${servings} · **Tiempo de preparación:** ${prepTime} min · **Tiempo de cocción:** ${cookTime} min · **Dificultad:** ${difficulty}
-
-### Ingredientes
-${ingredientLines}
-
-### Preparación
-${stepLines}
-
-### Tip del chef
-${tip}`;
-}
-
-// --- UI helpers -----------------------------------------------------------
-
-function setLoading(isLoading) {
-  generateBtn.disabled = isLoading;
-  spinner.hidden = !isLoading;
-  btnText.textContent = isLoading ? "Cocinando..." : "Generar receta";
-}
+// Fila inicial de ingrediente y de paso
+addIngredientRow();
+addStepRow();
 
 function showError(message) {
   errorBox.textContent = message;
   errorBox.hidden = false;
+  errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function hideError() {
@@ -910,69 +872,151 @@ function hideError() {
   errorBox.textContent = "";
 }
 
-// --- Mini Markdown -> HTML renderer ---------------------------------------
-// Soporta: ##/### encabezados, **negrita**, listas - y 1., párrafos
-// separados por línea en blanco, y la fila de metadatos con "·".
-
-function markdownToHtml(markdown) {
-  const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const inline = (s) => escapeHtml(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-
-  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
-  const html = [];
-  let listType = null;
-
-  const closeList = () => {
-    if (listType) {
-      html.push(`</${listType}>`);
-      listType = null;
-    }
-  };
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line) {
-      closeList();
-      continue;
-    }
-
-    const h3 = line.match(/^###\s+(.*)/);
-    const h2 = line.match(/^##\s+(.*)/);
-    const ol = line.match(/^\d+[.)]\s+(.*)/);
-    const ul = line.match(/^[-*]\s+(.*)/);
-
-    if (h2) {
-      closeList();
-      html.push(`<h2>${inline(h2[1])}</h2>`);
-    } else if (h3) {
-      closeList();
-      html.push(`<h3>${inline(h3[1])}</h3>`);
-    } else if (ol) {
-      if (listType !== "ol") {
-        closeList();
-        html.push("<ol>");
-        listType = "ol";
-      }
-      html.push(`<li>${inline(ol[1])}</li>`);
-    } else if (ul) {
-      if (listType !== "ul") {
-        closeList();
-        html.push("<ul>");
-        listType = "ul";
-      }
-      html.push(`<li>${inline(ul[1])}</li>`);
-    } else if (/^\*\*Porciones/.test(line) || /·/.test(line)) {
-      closeList();
-      html.push(`<div class="meta-row"><span>${inline(line).replace(/\s*·\s*/g, "</span><span>")}</span></div>`);
-    } else {
-      closeList();
-      html.push(`<p>${inline(line)}</p>`);
-    }
-  }
-  closeList();
-
-  return html.join("\n");
+function clearInvalid() {
+  recipeForm.querySelectorAll(".invalid").forEach((el) => el.classList.remove("invalid"));
 }
+
+function markInvalid(el) {
+  el.classList.add("invalid");
+}
+
+function validateForm() {
+  clearInvalid();
+  const errors = [];
+
+  const author = document.getElementById("authorInput");
+  const title = document.getElementById("titleInput");
+  const prepTime = document.getElementById("prepTimeInput");
+  const cookTime = document.getElementById("cookTimeInput");
+  const servings = document.getElementById("servingsInput");
+  const difficulty = document.getElementById("difficultySelect");
+
+  if (!author.value.trim()) {
+    markInvalid(author);
+    errors.push("Falta el autor.");
+  }
+  if (!title.value.trim()) {
+    markInvalid(title);
+    errors.push("Falta el título de la receta.");
+  }
+  if (prepTime.value === "" || Number(prepTime.value) < 0) {
+    markInvalid(prepTime);
+    errors.push("Indica el tiempo de preparación.");
+  }
+  if (cookTime.value === "" || Number(cookTime.value) < 0) {
+    markInvalid(cookTime);
+    errors.push("Indica el tiempo de cocción.");
+  }
+  if (servings.value === "" || Number(servings.value) < 1) {
+    markInvalid(servings);
+    errors.push("Indica el número de raciones.");
+  }
+  if (!difficulty.value) {
+    markInvalid(difficulty);
+    errors.push("Elige un nivel de dificultad.");
+  }
+
+  const ingredients = [];
+  [...ingredientsList.children].forEach((row) => {
+    const name = row.querySelector(".ing-name");
+    const qty = row.querySelector(".ing-qty");
+    const unit = row.querySelector(".ing-unit");
+    const hasAny = name.value.trim() || qty.value !== "";
+    if (!name.value.trim() || qty.value === "" || Number(qty.value) <= 0) {
+      if (hasAny) {
+        markInvalid(name);
+        markInvalid(qty);
+      }
+      return;
+    }
+    if (!UNIT_OPTIONS.includes(unit.value)) {
+      markInvalid(unit);
+      errors.push("Unidad de ingrediente no válida (solo g, kg, ml o l).");
+      return;
+    }
+    ingredients.push({ name: name.value.trim(), qty: qty.value, unit: unit.value });
+  });
+  if (ingredients.length === 0) {
+    errors.push("Añade al menos un ingrediente completo (nombre, cantidad y unidad).");
+  }
+
+  const steps = [];
+  [...stepsList.children].forEach((row) => {
+    const text = row.querySelector(".step-text");
+    if (text.value.trim()) steps.push(text.value.trim());
+    else markInvalid(text);
+  });
+  if (steps.length === 0) {
+    errors.push("Añade al menos un paso.");
+  }
+
+  return { valid: errors.length === 0, errors: errors, ingredients: ingredients, steps: steps };
+}
+
+recipeForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  hideError();
+
+  const result = validateForm();
+  if (!result.valid) {
+    const extra = result.errors.length > 1 ? " (y " + (result.errors.length - 1) + " más)" : "";
+    showError(result.errors[0] + extra);
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("_subject", "Nueva receta enviada - Chef IA");
+  fd.append("_template", "table");
+  fd.append("Autor", document.getElementById("authorInput").value.trim());
+  fd.append("Título", document.getElementById("titleInput").value.trim());
+  fd.append("Historieta", document.getElementById("storyInput").value.trim() || "(sin historieta)");
+  fd.append("Tiempo de preparación (min)", document.getElementById("prepTimeInput").value);
+  fd.append("Tiempo de cocción (min)", document.getElementById("cookTimeInput").value);
+  fd.append("Raciones", document.getElementById("servingsInput").value);
+  fd.append("Dificultad", document.getElementById("difficultySelect").value);
+  fd.append(
+    "Ingredientes",
+    result.ingredients.map((i) => "- " + i.name + ": " + i.qty + " " + i.unit).join("\n")
+  );
+  fd.append(
+    "Pasos",
+    result.steps.map((s, i) => i + 1 + ". " + s).join("\n")
+  );
+  const imageFile = document.getElementById("imageInput").files[0];
+  if (imageFile) fd.append("Imagen", imageFile);
+
+  submitBtn.disabled = true;
+  submitSpinner.hidden = false;
+  submitBtnText.textContent = "Enviando...";
+
+  try {
+    const res = await fetch(FORM_ENDPOINT, {
+      method: "POST",
+      body: fd,
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error("bad status");
+    formCard.hidden = true;
+    successCard.hidden = false;
+    successCard.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (err) {
+    showError("No se pudo enviar la receta. Comprueba tu conexión e inténtalo de nuevo.");
+  } finally {
+    submitBtn.disabled = false;
+    submitSpinner.hidden = true;
+    submitBtnText.textContent = "Enviar receta";
+  }
+});
+
+document.getElementById("sendAnotherBtn").addEventListener("click", () => {
+  recipeForm.reset();
+  ingredientsList.innerHTML = "";
+  stepsList.innerHTML = "";
+  addIngredientRow();
+  addStepRow();
+  successCard.hidden = true;
+  formCard.hidden = false;
+});
 </script>
 </body>
 </html>
