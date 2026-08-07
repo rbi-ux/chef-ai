@@ -965,23 +965,34 @@ recipeForm.addEventListener("submit", async function (e) {
     return;
   }
 
+  // FormSubmit.co da error 500 con cualquier tilde/ñ en un valor (bug de su
+  // servidor, confirmado probando carácter por carácter) - por eso el correo
+  // se manda en versión sin acentos. El dato original queda intacto en pantalla,
+  // esto solo afecta al texto que viaja por email.
+  function toAsciiSafe(str) {
+    return String(str)
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^\x00-\x7E]/g, "");
+  }
+
   const fd = new FormData();
   fd.append("_subject", "Nueva receta enviada - Aileas Keto x Nutri Habits");
   fd.append("_template", "table");
-  fd.append("Autor", document.getElementById("authorInput").value.trim());
-  fd.append("Título", document.getElementById("titleInput").value.trim());
-  fd.append("Historieta", document.getElementById("storyInput").value.trim());
-  fd.append("Tiempo de preparación (min)", document.getElementById("prepTimeInput").value);
-  fd.append("Tiempo de cocción (min)", document.getElementById("cookTimeInput").value);
+  fd.append("Autor", toAsciiSafe(document.getElementById("authorInput").value.trim()));
+  fd.append("Titulo", toAsciiSafe(document.getElementById("titleInput").value.trim()));
+  fd.append("Historieta", toAsciiSafe(document.getElementById("storyInput").value.trim()));
+  fd.append("Tiempo de preparacion (min)", document.getElementById("prepTimeInput").value);
+  fd.append("Tiempo de coccion (min)", document.getElementById("cookTimeInput").value);
   fd.append("Raciones", document.getElementById("servingsInput").value);
-  fd.append("Dificultad", document.getElementById("difficultySelect").value);
+  fd.append("Dificultad", toAsciiSafe(document.getElementById("difficultySelect").value));
   fd.append(
     "Ingredientes",
-    result.ingredients.map((i) => "- " + i.name + ": " + i.qty + " " + i.unit).join("\n")
+    toAsciiSafe(result.ingredients.map((i) => "- " + i.name + ": " + i.qty + " " + i.unit).join("\n"))
   );
   fd.append(
     "Pasos",
-    result.steps.map((s, i) => i + 1 + ". " + s).join("\n")
+    toAsciiSafe(result.steps.map((s, i) => i + 1 + ". " + s).join("\n"))
   );
   const imageFile = document.getElementById("imageInput").files[0];
   if (imageFile) fd.append("Imagen", imageFile);
@@ -995,6 +1006,7 @@ recipeForm.addEventListener("submit", async function (e) {
       method: "POST",
       body: fd,
       headers: { Accept: "application/json" },
+      referrerPolicy: "no-referrer-when-downgrade",
     });
 
     let payload = null;
