@@ -361,68 +361,6 @@ button {
   }
 }
 
-.gate-screen {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.gate-screen[hidden] {
-  display: none;
-}
-
-.gate-card {
-  width: 100%;
-  max-width: 340px;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 28px 26px;
-  box-shadow: 0 2px 10px rgba(43, 36, 29, 0.06);
-  text-align: center;
-}
-
-.gate-card .gate-icon {
-  font-size: 1.8rem;
-  margin-bottom: 6px;
-}
-
-.gate-card h2 {
-  margin: 0 0 6px;
-  font-size: 1.3rem;
-}
-
-.gate-card p {
-  color: var(--ink-soft);
-  font-size: 0.88rem;
-  margin: 0 0 20px;
-}
-
-.gate-card form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  text-align: left;
-}
-
-.gate-card label {
-  font-size: 0.82rem;
-  margin-bottom: 2px;
-}
-
-.gate-card .primary-btn {
-  justify-content: center;
-  margin-top: 6px;
-}
-
-.gate-error {
-  color: var(--error-ink);
-  font-size: 0.82rem;
-  margin: 10px 0 0;
-  min-height: 1.1em;
-}
 
 /* --- Formulario de envío de recetas --- */
 .form-fields {
@@ -629,23 +567,7 @@ input[type="file"] {
 </head>
 <body>
 
-<div id="gateScreen" class="gate-screen">
-  <div class="gate-card">
-    <div class="gate-icon">🔒</div>
-    <h2>Acceso privado</h2>
-    <p>Esta receta está reservada. Pide el usuario y la contraseña a quien te compartió el link.</p>
-    <form id="gateForm" autocomplete="off">
-      <label for="gateUser">Usuario</label>
-      <input type="text" id="gateUser" autocomplete="username" required />
-      <label for="gatePass">Contraseña</label>
-      <input type="password" id="gatePass" autocomplete="current-password" required />
-      <button type="submit" class="primary-btn">Entrar</button>
-    </form>
-    <p class="gate-error" id="gateError" hidden>Usuario o contraseña incorrectos.</p>
-  </div>
-</div>
-
-<div class="app" id="appRoot" hidden>
+<div class="app" id="appRoot">
   <header class="app-header">
     <h1>🥑 Formulario de receta</h1>
     <p class="subtitle">Colaboración con Aileas Keto × Nutri Habits — comparte tu receta y la sumamos a la colección.</p>
@@ -728,59 +650,6 @@ input[type="file"] {
 </div>
 
 <script>
-// --- Acceso con usuario/contraseña -----------------------------------------
-// Aviso: esto es una cortina del lado del cliente, no seguridad real.
-// El usuario y la contraseña quedan visibles en el código fuente de la
-// página para cualquiera que abra las herramientas de desarrollador.
-// Sirve para evitar que quien no tiene el link/clave entre por casualidad,
-// no para proteger información sensible.
-(function () {
-  const GATE_USER = "rbi";
-  const GATE_PASS = "12345";
-  const GATE_STORAGE_KEY = "chefia_gate_ok";
-
-  const gateScreen = document.getElementById("gateScreen");
-  const appRoot = document.getElementById("appRoot");
-  const gateForm = document.getElementById("gateForm");
-  const gateError = document.getElementById("gateError");
-
-  function unlock() {
-    gateScreen.hidden = true;
-    appRoot.hidden = false;
-  }
-
-  function rememberUnlock() {
-    try {
-      localStorage.setItem(GATE_STORAGE_KEY, "yes");
-    } catch (err) {
-      // Almacenamiento bloqueado por el navegador (modo privado, webview, etc.):
-      // no pasa nada, simplemente no se recordará la sesión la próxima vez.
-    }
-  }
-
-  try {
-    if (localStorage.getItem(GATE_STORAGE_KEY) === "yes") {
-      unlock();
-    }
-  } catch (err) {
-    // Si el navegador bloquea localStorage, seguimos mostrando el login normalmente.
-  }
-
-  gateForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const user = document.getElementById("gateUser").value.trim().toLowerCase();
-    const pass = document.getElementById("gatePass").value;
-    if (user === GATE_USER && pass === GATE_PASS) {
-      rememberUnlock();
-      gateError.hidden = true;
-      unlock();
-    } else {
-      gateError.hidden = false;
-    }
-  });
-})();
-
-
 // --- Formulario de envío de recetas -----------------------------------
 // Sitio estático (GitHub Pages): el envío se hace vía FormSubmit.co, que
 // reenvía los datos por correo. FormSubmit ve los datos del formulario
