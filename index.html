@@ -567,24 +567,6 @@ input[type="file"] {
 </head>
 <body>
 
-<!-- Formulario "sombra", estático y oculto: solo sirve para que Netlify detecte
-     los campos al desplegar el sitio. El formulario real que ve el usuario es
-     el de más abajo (#recipeForm) y se envía por JS a este mismo formulario. -->
-<form name="recetas" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input type="hidden" name="form-name" value="recetas" />
-  <input name="bot-field" />
-  <input name="Autor" />
-  <input name="Titulo" />
-  <textarea name="Historieta"></textarea>
-  <input name="TiempoPreparacion" />
-  <input name="TiempoCoccion" />
-  <input name="Raciones" />
-  <input name="Dificultad" />
-  <textarea name="Ingredientes"></textarea>
-  <textarea name="Pasos"></textarea>
-  <input type="file" name="Imagen" />
-</form>
-
 <div class="app" id="appRoot">
   <header class="app-header">
     <h1>🥑 Formulario de receta</h1>
@@ -669,11 +651,13 @@ input[type="file"] {
 
 <script>
 // --- Formulario de envío de recetas -----------------------------------
-// Sitio estático, alojado en Netlify: el envío se procesa con Netlify Forms.
-// Netlify detecta el formulario "sombra" (más arriba en el HTML) al desplegar
-// y, a partir de ahí, cualquier POST a esta misma página con form-name=recetas
-// queda guardado como un envío visible en el panel de Netlify (Site > Forms).
-// No hay email ni servicio de terceros de por medio.
+// Sitio estático (GitHub Pages), sin backend: cada envío se manda directo a
+// un chat de Telegram vía la Bot API. El token va necesariamente en este JS
+// visible en el navegador (no hay forma de ocultarlo sin un backend propio);
+// el riesgo si alguien lo copia es que podría mandar mensajes a este chat,
+// no leer nada ni acceder a ninguna cuenta.
+const TELEGRAM_BOT_TOKEN = "8944080614:AAF5ZNA7XOMnLbhQBkHXtLXgZGlD1hNE0eE";
+const TELEGRAM_CHAT_ID = "8150303209";
 const UNIT_OPTIONS = ["g", "kg", "ml", "l"];
 
 const recipeForm = document.getElementById("recipeForm");
@@ -903,24 +887,29 @@ recipeForm.addEventListener("submit", async function (e) {
     return;
   }
 
-  const fd = new FormData();
-  fd.append("form-name", "recetas");
-  fd.append("Autor", document.getElementById("authorInput").value.trim());
-  fd.append("Titulo", document.getElementById("titleInput").value.trim());
-  fd.append("Historieta", document.getElementById("storyInput").value.trim());
-  fd.append("TiempoPreparacion", document.getElementById("prepTimeInput").value);
-  fd.append("TiempoCoccion", document.getElementById("cookTimeInput").value);
-  fd.append("Raciones", document.getElementById("servingsInput").value);
-  fd.append("Dificultad", document.getElementById("difficultySelect").value);
-  fd.append(
-    "Ingredientes",
-    result.ingredients.map((i) => "- " + i.name + ": " + i.qty + " " + i.unit).join("\n")
-  );
-  fd.append(
-    "Pasos",
-    result.steps.map((s, i) => i + 1 + ". " + s).join("\n")
-  );
+  const autor = document.getElementById("authorInput").value.trim();
+  const titulo = document.getElementById("titleInput").value.trim();
+  const historieta = document.getElementById("storyInput").value.trim();
+  const tiempoPrep = document.getElementById("prepTimeInput").value;
+  const tiempoCoccion = document.getElementById("cookTimeInput").value;
+  const raciones = document.getElementById("servingsInput").value;
+  const dificultad = document.getElementById("difficultySelect").value;
+  const ingredientesTexto = result.ingredients.map((i) => "- " + i.name + ": " + i.qty + " " + i.unit).join("\n");
+  const pasosTexto = result.steps.map((s, i) => i + 1 + ". " + s).join("\n");
   const imageFile = document.getElementById("imageInput").files[0];
+
+  // Texto plano, sin parse_mode: si se usa Markdown/HTML de Telegram, un
+  // carácter especial dentro de lo que escriba el usuario (un "_" o un "*")
+  // puede romper el parseo y que sendMessage devuelva error 400.
+  const messageText =
+    "🥑 Nueva receta recibida\n\n" +
+    "Autor: " + autor + "\n" +
+    "Titulo: " + titulo + "\n" +
+    "Historieta: " + historieta + "\n\n" +
+    "Preparacion: " + tiempoPrep + " min · Coccion: " + tiempoCoccion + " min · Raciones: " + raciones + "\n" +
+    "Dificultad: " + dificultad + "\n\n" +
+    "Ingredientes:\n" + ingredientesTexto + "\n\n" +
+    "Pasos:\n" + pasosTexto;
 
   submitBtn.disabled = true;
   submitSpinner.hidden = false;
@@ -929,23 +918,38 @@ recipeForm.addEventListener("submit", async function (e) {
   try {
     if (imageFile) {
       submitBtnText.textContent = "Procesando imagen...";
+      let photoBlob = imageFile;
       try {
-        const resizedBlob = await resizeImageFile(imageFile, 1600, 0.82);
-        fd.append("Imagen", resizedBlob, "receta.jpg");
+        photoBlob = await resizeImageFile(imageFile, 1600, 0.82);
       } catch (imgErr) {
         console.error("No se pudo comprimir la imagen, se envía sin comprimir:", imgErr);
-        fd.append("Imagen", imageFile);
       }
       submitBtnText.textContent = "Enviando...";
+
+      const photoForm = new FormData();
+      photoForm.append("chat_id", TELEGRAM_CHAT_ID);
+      photoForm.append("photo", photoBlob, "receta.jpg");
+      photoForm.append("caption", "🥑 " + titulo + " — de " + autor);
+
+      const photoRes = await fetch("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendPhoto", {
+        method: "POST",
+        body: photoForm,
+      });
+      const photoPayload = await photoRes.json();
+      if (!photoPayload.ok) {
+        throw new Error(photoPayload.description || "No se pudo enviar la imagen");
+      }
     }
 
-    const res = await fetch("/", {
+    submitBtnText.textContent = "Enviando...";
+    const msgRes = await fetch("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage", {
       method: "POST",
-      body: fd,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: messageText }),
     });
-
-    if (!res.ok) {
-      throw new Error("HTTP " + res.status);
+    const msgPayload = await msgRes.json();
+    if (!msgPayload.ok) {
+      throw new Error(msgPayload.description || "No se pudo enviar la receta");
     }
 
     formCard.hidden = true;
