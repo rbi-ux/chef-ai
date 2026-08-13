@@ -657,7 +657,13 @@ input[type="file"] {
 // el riesgo si alguien lo copia es que podría mandar mensajes a este chat,
 // no leer nada ni acceder a ninguna cuenta.
 const TELEGRAM_BOT_TOKEN = "8944080614:AAF5ZNA7XOMnLbhQBkHXtLXgZGlD1hNE0eE";
-const TELEGRAM_CHAT_ID = "8150303209";
+// Telegram no ofrece un endpoint para "listar todos los chats donde está el
+// bot" - solo se puede enviar a chat_ids ya conocidos. Si el bot se añade a
+// un grupo nuevo, hay que añadir su chat_id aquí a mano.
+const TELEGRAM_CHAT_IDS = [
+  "8150303209", // Chat privado
+  "-5267815543", // Grupo KDP
+];
 const UNIT_OPTIONS = ["g", "kg", "ml", "l"];
 
 const recipeForm = document.getElementById("recipeForm");
@@ -926,30 +932,34 @@ recipeForm.addEventListener("submit", async function (e) {
       }
       submitBtnText.textContent = "Enviando...";
 
-      const photoForm = new FormData();
-      photoForm.append("chat_id", TELEGRAM_CHAT_ID);
-      photoForm.append("photo", photoBlob, "receta.jpg");
-      photoForm.append("caption", "🥑 " + titulo + " — de " + autor);
+      for (const chatId of TELEGRAM_CHAT_IDS) {
+        const photoForm = new FormData();
+        photoForm.append("chat_id", chatId);
+        photoForm.append("photo", photoBlob, "receta.jpg");
+        photoForm.append("caption", "🥑 " + titulo + " — de " + autor);
 
-      const photoRes = await fetch("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendPhoto", {
-        method: "POST",
-        body: photoForm,
-      });
-      const photoPayload = await photoRes.json();
-      if (!photoPayload.ok) {
-        throw new Error(photoPayload.description || "No se pudo enviar la imagen");
+        const photoRes = await fetch("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendPhoto", {
+          method: "POST",
+          body: photoForm,
+        });
+        const photoPayload = await photoRes.json();
+        if (!photoPayload.ok) {
+          throw new Error(photoPayload.description || "No se pudo enviar la imagen");
+        }
       }
     }
 
     submitBtnText.textContent = "Enviando...";
-    const msgRes = await fetch("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: messageText }),
-    });
-    const msgPayload = await msgRes.json();
-    if (!msgPayload.ok) {
-      throw new Error(msgPayload.description || "No se pudo enviar la receta");
+    for (const chatId of TELEGRAM_CHAT_IDS) {
+      const msgRes = await fetch("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text: messageText }),
+      });
+      const msgPayload = await msgRes.json();
+      if (!msgPayload.ok) {
+        throw new Error(msgPayload.description || "No se pudo enviar la receta");
+      }
     }
 
     formCard.hidden = true;
